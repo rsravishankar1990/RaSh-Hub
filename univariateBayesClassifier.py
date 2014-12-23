@@ -1,0 +1,143 @@
+import csv
+import math
+
+#Get the training data file location from the user
+
+print 'Univariate Classification - Bayesian Theory \n\n Enter the location of the training data'
+filename = input(' ')
+
+#Create reader object for the csv file
+fileobj = open(filename)
+csv_fileobj = csv.reader(fileobj)
+
+#Get the column names from the file into a list
+colnames = []
+colnames = csv_fileobj.next()
+colnum = len(colnames)
+
+print 'The column names of the training data are:\n'
+for i in range(len(colnames)):
+	print colnames[i]
+
+#Choose the input variable and outcome variable in the training set
+inputvar = input('Enter the independent variable name:\n')
+outputvar = input('Enter the outcome variable name:\n')
+inputindex = -100
+outputindex = -100
+
+for i in range(colnum):
+	if colnames[i] == inputvar:
+		inputindex = i
+	if colnames[i] == outputvar:
+		outputindex = i
+
+#Check if the mentioned variables are in the training dataset
+if inputindex == -100:
+	print 'Error Message: The input variable mentioned is not in the training data. Exiting system.'
+	exit()
+
+if outputindex == -100:
+	print 'Error Message: The output variable mentioned is not in the training data. Exitting system.'
+	exit()
+
+
+
+
+#Get the required variables into different lists for easy processing
+inputlist = []
+outputlist = []
+
+
+
+for row in csv_fileobj:
+	inputlist.append(row[inputindex])
+	outputlist.append(row[outputindex])
+
+
+#Learning - Univariate Classification - With Continuous input
+#Find the unique outcomes possible
+distclass = list(set(outputlist))
+
+print 'The possible classes of outcome are'
+for i in range(len(distclass)):
+	print distclass[i]
+
+	
+#Assign variables required for estimating variance and mean for classification
+prior = []
+mean = []
+variance = []
+classCount = len(distclass)
+sums =0
+varianceSum = 0
+count =0
+prob = 0.0
+
+#Calculate prior for each class and the mean and variance:
+for i in range(classCount):
+	#Calculating Prior probabilities of different classes
+	instCount = float(outputlist.count(distclass[i]))
+	length = float(len(outputlist))
+	prob = float((instCount/length))
+	prior.append(prob)
+	print distclass[i],'Prior probability=', prior[i]
+
+
+	#Estimate mean and variance for the different classes
+	for j in range(len(outputlist)):
+		if distclass[i] == outputlist[j]:
+			sums = sums+ float(inputlist[j])
+			count = float(count+1)
+			
+	mean.append(float(sums/count))
+	
+	for j in range(len(outputlist)):
+		if distclass[i] == outputlist[j]:
+			varianceSum = varianceSum + ((float(inputlist[j]) - mean[i])**2)
+	
+	variance.append(float(varianceSum/count))
+	sums=0
+	count=0
+	varianceSum = 0
+
+proceed = 'yes'
+print 'Rules Learned. Machine ready for deployment. Enter a test value:'
+
+
+
+#Get input test value from user in order to check classification results
+while proceed == 'yes':
+	value = input('Enter Value:\n')
+	
+	#Probability of Classes:
+	maxprob = -100
+	maxprobclass = -100
+
+	
+	#Posterior probability list
+	posterior = []
+	
+	#Calculate the log of posterior probability = log(prior) - (x - m(i))^2/2variance
+	for j in range(len(distclass)):
+		posterior.append(float(math.log(prior[j]) - ((value - mean[j])**2)/(2*variance[j])))
+		print 'Class :', distclass[j], '\t Posterior:', posterior[j]
+		if posterior[j] >maxprob:
+			maxprob = posterior[j]
+			maxprobclass = distclass[j]
+
+	print '========================================================='
+	for i in range(len(distclass)):
+		print 'DISCRIMINANT AND DETAILS OF CLASS - ',distclass[i],':\n'
+		print 'Log of Posterior probability: ', posterior[i]
+		print 'The Estimated mean:', mean[i]
+		print 'The Estimated variance:', variance[i]
+		print '========================================================='
+
+
+	print 'It belongs to the class:', maxprobclass
+
+	#Continue working?:
+	proceed = input('Do you want to continue testing?: yes/no')
+
+fileobj.close()
+
