@@ -1,0 +1,164 @@
+import csv
+import math
+import numpy as np
+import numpy.linalg as npal
+import matplotlib.pyplot as plt
+
+
+#Get the training data file and the validation data file location from the user
+print 'Univariate Classification - Bayesian Theory \n\n Enter the location of the training data'
+filename = input(' ')
+print 'Enter the validation set name'
+validfile = input(' ')
+
+
+#Create reader object for the csv file
+fileobj = open(filename)
+csv_fileobj = csv.reader(fileobj)
+validobj=open(validfile)
+csv_validobj = csv.reader(validobj)
+
+
+#Get the column names from the file into a list
+colnames = []
+colnames = csv_fileobj.next()
+colnum = len(colnames)
+colnames2=[]
+colnames2 = csv_validobj.next()
+
+print 'The column names of the training data are:\n'
+for i in range(len(colnames)):
+	print colnames[i]
+
+#Choose the input variable and outcome variable in the training set
+inputvar = input('Enter the independent variable name:\n')
+outputvar = input('Enter the outcome variable name:\n')
+inputindex = -100
+outputindex = -100
+
+for i in range(colnum):
+	if colnames[i] == inputvar:
+		inputindex = i
+	if colnames[i] == outputvar:
+		outputindex = i
+
+#Check if the mentioned variables are in the training dataset
+if inputindex == -100:
+	print 'Error Message: The input variable mentioned is not in the training data. Exiting system.'
+	exit()
+
+if outputindex == -100:
+	print 'Error Message: The output variable mentioned is not in the training data. Exitting system.'
+	exit()
+
+
+
+
+#Get the required variables into different lists for easy processing
+inputlist = []
+outputlist = []
+valinputlist = []
+valoutputlist = []
+
+
+for row in csv_fileobj:
+	inputlist.append(row[inputindex])
+	outputlist.append(row[outputindex])
+for row in csv_validobj:
+	valinputlist.append(row[inputindex])
+	valoutputlist.append(row[outputindex])
+
+
+inputsum =0.0
+outputsum = 0.0
+plt.scatter(inputlist,outputlist)
+plt.show()
+
+#Learning - Univariate Regression
+
+W = []
+Error = []
+Rsquare = []
+order = []
+
+for k in range(1,25):
+	y = []
+	d = []
+	w = []
+
+	for i in range(len(inputlist)):
+		templist = []
+		for j in range(k+1):
+			templist.append(float(inputlist[i])**j)
+	
+		y.append(float(outputlist[i]))	
+		d.append(templist)
+	D = np.matrix(d)
+	r = np.transpose(np.matrix(y))
+	Dt = np.transpose(D)
+	DtD = np.matrix(Dt*D)
+	DtDinv = npal.inv(DtD)
+
+	print 'R shape',r.shape
+	print 'D shape',D.shape
+	print 'D transpose shape',Dt.shape
+	print 'DtD inverse shape',DtDinv.shape
+	Y = np.matrix(Dt*r)
+	w = np.matrix(DtDinv * Y).tolist()
+	print w[1][0]
+
+#Cross Validation
+	
+	W.append(w)
+
+
+	error = 0.0
+	for l in range(len(valinputlist)):
+		predicted = 0.0
+		for m in range(k):
+			predicted = predicted + (float(w[m][0]) * (float(valinputlist[l])**m))
+		error = error+((predicted - float(valoutputlist[l]))**2)/2
+	
+	
+	Error.append(error)
+	order.append(k)
+	sumr = 0.0
+	for l in range(len(valinputlist)):
+		sumr = sumr+float(valoutputlist[l])
+	sumr = sumr/float(len(valoutputlist))
+	varr=0.0
+	for l in range(len(valinputlist)):
+		varr = varr+(float(valoutputlist[l])-sumr)**2
+	Rsquare.append(float(1-(error/varr)))	
+
+plt.scatter(order,Error)
+plt.show()
+plt.scatter(order,Rsquare)
+plt.show()
+
+
+#Choose the order from user the:
+orderchoice = input('Enter the order choice')
+
+#plot the graph of the function:
+print 'Regression coefficients ready.'
+Coeff = []
+Coeff = W[orderchoice-1]
+Prediction = []
+graphX = []
+l=0.0
+while l<=3.00:
+	predicted = 0.0
+	for m in range(orderchoice):
+		predicted = predicted + (float(Coeff[m][0]) * (float(l)**m))
+	Prediction.append(predicted)	
+	graphX.append(l)
+	l = l+ 0.01
+
+plt.scatter(graphX,Prediction,color='k')
+plt.scatter(inputlist,outputlist,color='g')
+plt.axis([0,3,0,10000])
+plt.show()
+
+fileobj.close()
+

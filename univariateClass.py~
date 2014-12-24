@@ -30,6 +30,7 @@ for i in range(colnum):
 		inputindex = i
 	if colnames[i] == outputvar:
 		outputindex = i
+print inputindex, outputindex
 
 #Check if the mentioned variables are in the training dataset
 if inputindex == -100:
@@ -131,7 +132,9 @@ while proceed == 'yes':
 		print 'Log of Posterior probability: ', posterior[i]
 		print 'The Estimated mean:', mean[i]
 		print 'The Estimated variance:', variance[i]
-	print '========================================================='
+		print '========================================================='
+
+
 	print 'It belongs to the class:', maxprobclass
 
 	#Continue working?:
