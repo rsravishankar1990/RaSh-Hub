@@ -119,7 +119,7 @@ while proceed == 'yes':
 	
 	#Calculate the log of posterior probability = log(prior) - (x - m(i))^2/2variance
 	for j in range(len(distclass)):
-		posterior.append(float(math.log(prior[j]) -(log(variance[j]))/2 - ((value - mean[j])**2)/(2*variance[j])))
+		posterior.append(float(math.log(prior[j]) - ((value - mean[j])**2)/(2*variance[j])))
 		print 'Class :', distclass[j], '\t Posterior:', posterior[j]
 		if posterior[j] >maxprob:
 			maxprob = posterior[j]
